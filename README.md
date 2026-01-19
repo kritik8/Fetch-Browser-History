@@ -1,4 +1,4 @@
-# Browser History Extractor — Personal Project
+# Browser History Extractor
 
 Compact project to extract and summarize browser history from Chrome/Chromium, Firefox, and Edge profiles into a simple timeline and top-domains report. Designed as a small, honest personal project you can complete in a day and link from your CV.
 
