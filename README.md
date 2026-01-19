@@ -1,111 +1,110 @@
-<p align="center" width="100%">
-    <img width="33%" src="https://github.com/browser-history/browser-history/blob/master/logo.png?raw=true">
-</p>
+# Browser History Extractor — Personal Project
 
-<h1 align="center"> browser-history</h1>
+Compact project to extract and summarize browser history from Chrome/Chromium, Firefox, and Edge profiles into a simple timeline and top-domains report. Designed as a small, honest personal project you can complete in a day and link from your CV.
 
-![tests](https://github.com/browser-history/browser-history/workflows/tests/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/browser-history/badge/?version=latest)](https://browser-history.readthedocs.io/en/latest/?badge=latest)
-[![PyPI version](https://badge.fury.io/py/browser-history.svg)](https://badge.fury.io/py/browser-history)
-[![codecov](https://codecov.io/gh/browser-history/browser-history/branch/master/graph/badge.svg)](https://codecov.io/gh/browser-history/browser-history)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Maintainability](https://api.codeclimate.com/v1/badges/64c86a28b0d7d387ce72/maintainability)](https://codeclimate.com/github/browser-history/browser-history/maintainability)
+Overview
+- Purpose: quickly produce a user activity timeline (timestamps, URL, title, browser, profile) and a short triage summary (top domains, top visited pages) from local browser history files.
+- Scope: works on local browser profile SQLite files (Chrome/Chromium/Edge `History`, Firefox `places.sqlite`). Does not analyze cookies, passwords, or synced cloud data.
+- Deliverables: a small Python script (browser_timeline.py), example outputs (CSV, simple Markdown/HTML report), and screenshots you can include in your repo.
 
-``browser-history`` is a simple, zero-dependencies, developer-friendly python
-package to retrieve (almost) any browser's history on (almost) any platform.
+Why this is useful
+- Fast way to show user web activity during a timeframe, helpful for basic triage and demonstrating practical forensic skills.
+- Small, reproducible, and safe when using only your own data or public sample files.
 
+Safety & legal note (read this)
+- Only analyze browser data you own or are explicitly permitted to analyze. Do not extract or share someone else’s private browsing history without consent. If you use sample data, link its source.
+- Close the browser (or copy the SQLite file while browser is closed) before reading Chrome/Firefox history to avoid locks/corruption.
 
-## Features
+What’s included (suggested repo structure)
+- browser_timeline.py — main extraction & export script (Python)
+- requirements.txt — minimal Python deps (e.g., pandas, python-dateutil)
+- sample_data/ — (optional) small example history files or links to public test files
+- outputs/ — example outputs: timeline.csv, top_domains.md, screenshot.png
+- README.md — this file
 
- - Supports most **popular browsers**. See [this](https://browser-history.readthedocs.io/en/latest/browsers.html) for a full list.
- - Supports all major platforms - **Windows, Mac and Linux**.
- - A **command-line tool**: simply run `browser-history --help` from your terminal.
- - **History**: browsing history with exact timestamp and URL.
- - **Bookmarks**: browser bookmarks with timestamp, URL, title and folder.
- - Lightweight: the entire package is less than 20kB in size and has no dependencies other than python 3.8+.
- - Developer friendly: you can add support for new browsers or add a new feature very easily.
- - Default browser: can automatically determine the default browser on Windows and Linux (`browser-history -b default`).
- - Fully open source: this project is developed and maintained by the [`browser-history` organization](https://github.com/browser-history) (previously maintained by [PESOS](https://github.com/pesos)) and will always be open source (with the Apache 2.0 License).
+Prerequisites
+- Python 3.8+
+- pip
+- Recommended Python packages (install from requirements.txt):
+  - pandas
+  - python-dateutil
+  - tldextract (optional, for domain extraction)
+- sqlite3 (usually available by default on Linux/macOS/Windows via Python)
 
-# Quick Start
-
-## Installation
-
-To install the latest release:
-
-```
-pip install browser-history
-```
-
-To install from the master branch (warning: development version. Things could break)
-
-```
-pip install git+https://github.com/browser-history/browser-history.git
+Quick install
+```bash
+git clone https://github.com/<your-username>/browser-history-extractor.git
+cd browser-history-extractor
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-## Usage
+How browser history is located (common paths)
+- Chrome / Edge (while browser closed):
+  - macOS: ~/Library/Application Support/Google/Chrome/Default/History
+  - Linux: ~/.config/google-chrome/Default/History
+  - Windows: %LOCALAPPDATA%\Google\Chrome\User Data\Default\History
+- Firefox:
+  - profiles usually under: ~/.mozilla/firefox/*.default-release/places.sqlite
+- Note: profiles other than `Default` will have a different folder name. Copy the file to a working folder before running the script.
 
-### History
+Usage (example)
+- Basic:
+  ```bash
+  python3 browser_timeline.py \
+    --input /path/to/copied/History \
+    --browser chrome \
+    --output outputs/timeline.csv
+  ```
+- Multiple inputs (Chrome + Firefox):
+  ```bash
+  python3 browser_timeline.py \
+    --inputs /path/to/History /path/to/places.sqlite \
+    --output outputs/timeline.csv \
+    --report outputs/top_domains.md
+  ```
+- The script will:
+  - Read supported SQLite schemas and normalize timestamps to UTC.
+  - Produce `timeline.csv` with fields: timestamp_utc, browser, profile, url, title, visit_count, domain.
+  - Produce a short `top_domains.md` showing top N domains and top visited URLs.
 
-To get history from all installed browsers:
-```python
-from browser_history import get_history
+Notes on timestamps & normalization
+- Chrome/Chromium/Edge use WebKit/Chrome timestamps (large integers). The script converts these to standard UTC datetimes.
+- Firefox uses Unix timestamps in `places.sqlite`; these are also normalized to UTC.
+- All outputs are in UTC to avoid ambiguity; local timezone conversions can be performed in the notebook or by the consumer.
 
-outputs = get_history()
+Example output (CSV row)
+timestamp_utc, browser, profile, url, title, visit_count, domain
+2025-11-08T14:23:10Z, chrome, Default, https://example.com/article, "Example Article", 3, example.com
 
-# his is a list of (datetime.datetime, url) tuples
-his = outputs.histories
+Simple analysis ideas to add
+- Events per hour / day (activity heatmap)
+- Top 20 domains and top 20 URLs
+- Filter timeline by keyword (e.g., "login", "bank", "github")
+- Produce a small findings snippet: “Most activity between 09:00–11:00 UTC; top domain: example.com; suspicious visit: ...” (if applicable)
+
+How to present this on your CV (honest examples)
+- “Personal project — Browser history extractor: small Python tool to parse Chrome/Firefox history sqlite files and produce a normalized timeline and top-domains report. Repo: https://github.com/<your-username>/browser-history-extractor (Python, pandas, SQLite).”
+- One-liner: “Built a browser history timeline extractor (Python) to quickly triage user web activity from local profile files.”
+
+Suggestions to make it CV-ready (1–2 day work)
+- Include a runnable script + requirements and a sample run in outputs/
+- Add a short example findings file and 1–2 screenshots of visualizations (graph of events/hour and top domains)
+- Add a short test script (scripts/test_run.sh) that runs the extractor on sample_data and checks outputs exist
+
+Next steps / optional improvements
+- Add a Jupyter notebook for visualization (events-per-hour, heatmap)
+- Integrate with browser-history libraries to support more browsers
+- Add domain categorization (work, social, finance) or simple risk scoring
+
+License & attribution
+- Use an OSI-approved license if you plan to publish (MIT is common for small personal projects).
+- If you include any sample data, cite the source.
+
+Questions or want a starter script?
+- I can generate a minimal `browser_timeline.py` script and `requirements.txt` now (ready-to-commit). Tell me whether you want it to:
+  - Read Chrome/Firefox files directly, or
+  - Assume pre-copied files in a `sample_data/` folder
+
 ```
-
-If you want history from a specific browser:
-```python
-from browser_history.browsers import Firefox
-
-f = Firefox()
-outputs = f.fetch_history()
-
-# his is a list of (datetime.datetime, url) tuples
-his = outputs.histories
-```
-
- - `Firefox` in the above snippet can be replaced with any of the [supported browsers](https://browser-history.readthedocs.io/en/latest/browsers.html).
-
-### Bookmarks
-
-WARNING: Experimental feature. Although this has been confirmed to work on multiple (Firefox and Chromium based) browsers
-on all platforms, it is not covered by tests and has not been used as much as the history feature.
-
-To get bookmarks from all installed browsers:
-```python
-from browser_history import get_bookmarks
-
-outputs = get_bookmarks()
-
-# bms is a list of (datetime.datetime, url, title, folder) tuples
-bms = outputs.bookmarks
-```
-
-To get bookmarks from a specific browser:
-```python
-from browser_history.browsers import Firefox
-
-f = Firefox()
-outputs = f.fetch_bookmarks()
-
-# bms is a list of (datetime.datetime, url, title, folder) tuples
-bms = outputs.bookmarks
-```
-
-Check out the [documentation](https://browser-history.readthedocs.io/en/latest/) for more details.
-
-# Supported Browsers
-
-Read the [documentation](https://browser-history.readthedocs.io/en/latest/browsers.html)
-
-# Credits
-
-Logo designed with :heart: by [XA](https://github.com/XAMES3).
-
-# License
-
-Licensed under the [Apache License, Version 2.0 (the "License")](LICENSE)
